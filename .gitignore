@@ -1,0 +1,11 @@
+*
+
+!.gitignore
+!tfidf_search.py
+!meddra.pt
+!mapping_evaluation.py
+!extract_vocab_umls.py
+!extract_vocab_ohdsi.py
+!*/
+!*/a/b/file1.txt
+!*/a/b/c/*
