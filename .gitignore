@@ -2,9 +2,9 @@
 
 !.gitignore
 !tfidf_search.py
-!meddra.py
-!process_umls.py
-!process_ohdsi.py
+!meddra.pt
+!extract_vocab_umls.py
+!extract_vocab_ohdsi.py
 !*/
 !*/a/b/file1.txt
 !*/a/b/c/*
