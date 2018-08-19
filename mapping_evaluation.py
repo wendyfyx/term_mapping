@@ -6,48 +6,6 @@ from collections import Counter
 from collections import defaultdict
 import statistics
 
-# https://stackoverflow.com/questions/15173225/calculate-cosine-similarity-given-2-sentence-strings
-WORD = re.compile(r'\w+')
-
-def retrieve_meddra(filename, level):
-    with open(filename) as file:
-        concepts = np.asarray([line.strip().split('\t') for line in file])
-    
-    # fill invalid_reason column if empty
-    for row in concepts:
-        if len(row) == 9 and len(row[8])==8:
-            row.append("NA")
-
-    concepts = np.asarray(concepts)
-    ret = np.asarray([row for row in concepts if row[3] == "MedDRA" and row[4] == level])
-    df = pd.DataFrame([[entry[0],entry[1],entry[3]] for entry in ret], 
-        columns = ["id", "concept",'vocab'])
-
-    return df
-
-def get_cosine(vec1, vec2):
-     intersection = set(vec1.keys()) & set(vec2.keys())
-     numerator = sum([vec1[x] * vec2[x] for x in intersection])
-
-     sum1 = sum([vec1[x]**2 for x in vec1.keys()])
-     sum2 = sum([vec2[x]**2 for x in vec2.keys()])
-     denominator = math.sqrt(sum1) * math.sqrt(sum2)
-
-     if not denominator:
-        return 0.0
-     else:
-        return "{0:.4f}".format(float(numerator) / denominator)
-
-def text_to_vector(text):
-     words = WORD.findall(text)
-     return Counter(words)
-
-# similarity between two terms
-def term_similarity(text1, text2):
-    vector1 = text_to_vector(text1)
-    vector2 = text_to_vector(text2)
-    return get_cosine(vector1, vector2)
-
 def retrieve_umls_type(filename):
     with open(filename) as f:
         concepts = pd.DataFrame([line.strip().split('|') for line in f],

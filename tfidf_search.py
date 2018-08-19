@@ -26,8 +26,6 @@ indexDir = rootPath + "/whoosh_index"
 ## TO DO
 # 1. COULD STORE SYNONYMS, GIVE PREFERRED TERM MORE WEIGHT (score_boost)
 # 2. PROCESS UNIQUE TERM, GET HIGHEST RANK TERM, PREFERRED TERM
-# 3. COMPARE WITH ORIGINAL MAPPING, COMPUTE ACCURACY
-# 4. MAKE PROGESS BAR
 
 class Search_Result():
     def __init__(self, cui, term, source, score):
@@ -130,7 +128,6 @@ def evaluate_results(umls_mapping, encoder_mapping):
         i+=1
 
     merged = pd.merge(df1, df2, how = "inner", on = ["term"])
-    print(merged[:2])
     incorrect = []
     count = 0
     for index, row in merged.iterrows():
@@ -143,7 +140,7 @@ def evaluate_results(umls_mapping, encoder_mapping):
             incorrect.append(row["term"])
     print("MAPPED: ", count)
     print("TOTAL: ", merged.shape[0])
-    print(float(count)/merged.shape[0])
+    print("PERCENTAGE CORRECT: ", float(count)/merged.shape[0])
     return incorrect
 
 def main():
