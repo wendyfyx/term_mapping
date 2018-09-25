@@ -56,25 +56,20 @@ def mapping_with_snomed(vocab, name, snomed, relation):
     df = df.rename(index=str, columns={"id1": name+"_id", "name_x": name, "id2": "snomed_id"})
     return df
 
-
-def main():
-
-    pd.set_option('display.max_colwidth', -1)
-
-    # ---- OHDSI data -----
+def ohdsi_mapping():
     
     icd9 = retrieve_ohdsi_vocab("ohdsi/CONCEPT.csv", "ICD9CM", "id1")
     icd10 = retrieve_ohdsi_vocab("ohdsi/CONCEPT.csv", "ICD10CM", "id1")
     mdr_llt = retrieve_meddra("ohdsi/CONCEPT.csv","id1","LLT")
     mdr_pt = retrieve_meddra("ohdsi/CONCEPT.csv","id1","PT")
     snomed = retrieve_ohdsi_vocab("ohdsi/CONCEPT.csv", "SNOMED","id2")
-    print("MedDRA PT: ", mdr_pt.shape)
-    print("MedDRA LLT: ", mdr_llt.shape)
+
     '''
     df_relation = get_concept_relationships("ohdsi/CONCEPT_RELATIONSHIP.csv", "MedDRA - ICD9CM")
     mdr_relation = pd.merge(mdr, df_relation, how="inner", on=["id1"])
     mdr_icd = pd.merge(mdr_relation, icd9, how="inner", on=["id2"])
     '''
+
     mdr_pt_snomed = mapping_with_snomed(mdr_pt, "mdr", snomed, "MedDRA - SNOMED eq")
     mdr_llt_snomed = mapping_with_snomed(mdr_llt, "mdr", snomed, "MedDRA - SNOMED eq")
     icd9_snomed = mapping_with_snomed(icd9, "icd", snomed, "Maps to")
@@ -84,20 +79,19 @@ def main():
     mdr_icd9_llt = pd.merge(mdr_llt_snomed, icd9_snomed, how="inner", on=["snomed_id"])
     mdr_icd10_pt = pd.merge(mdr_pt_snomed, icd10_snomed, how="inner", on=["snomed_id"])
     mdr_icd10_llt = pd.merge(mdr_llt_snomed, icd10_snomed, how="inner", on=["snomed_id"])
-    
-    merged_mdr = pd.concat([mdr_icd9_pt["mdr"],mdr_icd9_llt["mdr"],
-                            mdr_icd10_pt["mdr"],mdr_icd10_llt["mdr"]])
-    merged_mdr = merged_mdr.drop_duplicates(keep = "first")
-    print("Merged: ", len(set(merged_mdr)))
-    merged_mdr.to_csv("ohdsi_combined.txt",index=False,sep = "\t")
-    
-    '''
-    mdr_id = mdr_icd["id1"].tolist()
-    print("Matches: ", len(set(mdr_id)))
-    print("Matches Percentage: ", float(len(set(mdr_id)))/mdr.shape[0])
-    #print(mdr_icd.to_string(index=False))
-    '''
-    
+
+    merged = pd.concat([mdr_icd9_pt[["mdr","icd"]],mdr_icd9_llt[["mdr","icd"]],
+                            mdr_icd10_pt[["mdr","icd"]],mdr_icd10_llt[["mdr","icd"]]])
+    merged = merged.drop_duplicates(keep = "first")
+    merged.columns = ["MDR","ICD"]
+    print("Merged: ", len(set(merged["MDR"])))
+
+    return merged
+
+    #merged_mdr.to_csv("ohdsi_combined.txt",index=False,sep = "\t")
+
+def main():
+    return 
 
 if __name__ == "__main__":
     main()

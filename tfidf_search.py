@@ -7,7 +7,7 @@ import time
 import progressbar as pb
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
-from whoosh.fields import Schema, TEXT, ID, STORED
+from whoosh.fields import Schema, TEXT, ID, STORED, NUMERIC
 from whoosh.analysis import StemmingAnalyzer
 from whoosh.qparser import QueryParser
 from whoosh import index
@@ -26,6 +26,7 @@ indexDir = rootPath + "/whoosh_index"
 ## TO DO
 # 1. COULD STORE SYNONYMS, GIVE PREFERRED TERM MORE WEIGHT (score_boost)
 # 2. PROCESS UNIQUE TERM, GET HIGHEST RANK TERM, PREFERRED TERM
+# 3. SORT RESULTS 
 
 class Search_Result():
     def __init__(self, cui, term, source, score):
@@ -43,7 +44,8 @@ def index_umls(mrconso):
     # create schema
     schema = Schema(cui = STORED,
                     term = TEXT(stored=True),
-                    source = STORED)
+                    source = STORED,
+                    len_word = NUMERIC(sortable=True)) # used to sort search result
 
     # create index directory
     if not os.path.exists(indexDir):
@@ -60,8 +62,10 @@ def index_umls(mrconso):
             lang = splitStr[1]
             source = splitStr[11]
             term = splitStr[14]
+            len_word = len(term.split(" "))
             if lang == "ENG" and source in source_filter_list:
-                writer.add_document(cui = cui, term = term, source = source)            
+                writer.add_document(cui = cui, term = term, source = source, 
+                                    len_word = len_word)            
         writer.commit()
 
 # search single query
@@ -90,9 +94,11 @@ def whoosh_batch_search(query_input_list):
         var += 1
     return batch_results
 
+# get synonyms or lexial variants from UMLS Lexical Tools
 def get_synonyms(query):
     return
 
+# normalize term using UMLS Lexical Tools
 def get_norm(query):
     return
         
