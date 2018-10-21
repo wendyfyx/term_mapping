@@ -1,5 +1,5 @@
 import pandas as pd
-from collections import defaultdict
+from collections import defaultdict, Counter
 from Authentication import *
 import requests
 import json
@@ -10,7 +10,10 @@ umlsPath = "/Users/Fyxstkala/Desktop/GitHub/term_mapping/umls"
 mrrank = umlsPath + "/MRRANK.RRF"
 mrsty = umlsPath + "/MRSTY.RRF"
 mrconso = umlsPath + "/MRCONSO.RRF"
+mrmap = umlsPath + "/MRMAP.RRF"
+mrrel = umlsPath + "/MRREL.RRF"
 base_url = "https://uts-ws.nlm.nih.gov/rest"
+cui_sab_dict = defaultdict(list)
 
 def retrieve_from_api_by_source(endpoint,apikey):
 
@@ -59,6 +62,12 @@ def retrive_from_api(version, source, apikey):
     return term_dict
 
 
+def initialize_cui_sab_dict(mrconso):
+    with open(mrconso) as f:
+        for line in f:
+            entry = line.strip().split("|")
+            cui_sab_dict[entry[0]].append(entry[11])
+
 # retrived pandas dataframe from MRCONSO
 def get_from_source(filename, source):
     df = pd.read_csv(filename, sep="|", header=None, usecols=[0,1,11,12,14])
@@ -72,31 +81,20 @@ def get_meddra(df, term_type):
     return df.loc[df["TTY"] == term_type]
 
 # mapping between MedDRA and ICD
-def mapping(mdr, icd):
+def cui_mapping(mdr, icd):
     matches = pd.merge(mdr, icd, how='inner', on=["CUI"])
     len_match = len(set(matches["STR_x"].tolist()))
     len_mdr = len(set(mdr["STR"].tolist()))
-    print("MDR: ", len_mdr)
-    print("Matches: ", len_match)
-    print("Percentage of MedDRA: ", float(len_match)/len_mdr)
-    print("---")
     matches = matches.rename(columns={'STR_x': 'MDR', 'STR_y': 'ICD'})
     return matches[["CUI","MDR","ICD"]]
 
 # combined mapping from ICD9 and ICD10
 def combined_mapping(icd9, icd10, mdr, term_type):
     mdr = get_meddra(mdr, term_type)
-    mapping_icd9 = mapping(mdr, icd9)
-    mapping_icd10 = mapping(mdr, icd10)
+    mapping_icd9 = cui_mapping(mdr, icd9)
+    mapping_icd10 = cui_mapping(mdr, icd10)
     combined = pd.concat([mapping_icd9, mapping_icd10]).drop_duplicates(keep = "first")
     return combined
-    '''
-    mapping_dict = defaultdict(list)
-    for index,row in combined.iterrows():
-        mapping_dict[row["MDR"]].append(row["CUI"])
-    #print("Combined:", combined.shape[0])
-    return pd.DataFrame(mapping_dict, columns = ["MDR", "CUI"])
-    '''
 
 def umls_mapping():
     
@@ -112,6 +110,12 @@ def umls_mapping():
 def main():
 
     pd.set_option('display.max_colwidth', -1)
+    
+    df = pd.read_csv(mrconso, sep="|", header=None, usecols=[0,1,11,12,14])
+    df.columns = ["CUI","LAT","SAB","TTY","STR"]
+    df = df.loc[df["TTY"] == "XM"]
+    print(df)
+    
 
 if __name__ == "__main__":
     main()

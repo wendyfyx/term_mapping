@@ -77,15 +77,12 @@ def main():
     mapped_all = pd.concat([mapped_ohdsi,mapped_pt_umls,mapped_llt_umls]).drop_duplicates()
 
     llt_filtered = pd.merge(mapped_all,llt_df, left_on="MDR", right_on="llt_name",how = "inner")[["MDR","ICD"]]
-    print(llt_filtered.shape)
     pt_filtered = pd.merge(mapped_all, pt_df, left_on="MDR", right_on="pt_name", how = "inner")[["MDR","ICD"]]
-    print(pt_filtered.shape)
 
     llt_to_pt_filtered = pd.merge(llt_filtered, llt_pt_df, left_on="MDR", right_on="llt_name")[["pt_name","ICD"]]
     llt_to_pt_filtered.columns = ["MDR","ICD"]
     combined_all = pd.concat([pt_filtered,llt_to_pt_filtered]).drop_duplicates()
     print(len(set(combined_all["MDR"])))
-    print(combined_all[:3])
     
     mapping_dict = defaultdict(list)
     for index,row in combined_all.iterrows():
@@ -93,8 +90,22 @@ def main():
 
     with open("combined_mapping_dict.txt","a") as writer:
         for k, v in mapping_dict.items():
-            vals = "||".join(v)
-            writer.write("%s%s\n" % (k, vals))
+            vals = "$".join(v)
+            writer.write("%s$%s\n" % (k, vals))
+    '''
+
+    with open(llt_file) as f:
+        icd9 = [line.strip().split("$")[6] for line in f]
+    with open(llt_file) as f:
+        icd9cm = [line.strip().split("$")[7] for line in f]
+    with open(llt_file) as f:
+        icd10 = [line.strip().split("$")[8] for line in f]
+    print(Counter(icd9))
+    print(Counter(icd9cm))
+    print(Counter(icd10))
+    '''
+
+
 
 
 if __name__ == "__main__":

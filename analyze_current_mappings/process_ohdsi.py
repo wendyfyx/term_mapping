@@ -84,7 +84,6 @@ def ohdsi_mapping():
                             mdr_icd10_pt[["mdr","icd"]],mdr_icd10_llt[["mdr","icd"]]])
     merged = merged.drop_duplicates(keep = "first")
     merged.columns = ["MDR","ICD"]
-    print("Merged: ", len(set(merged["MDR"])))
 
     return merged
 
