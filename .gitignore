@@ -3,6 +3,9 @@
 !process_meddra.py
 !process_umls.py
 !process_ohdsi.py
+!mapping_encoder.java
+!mapping_query.java
+!UmlsQueryResult.java
 !*/
 !*/a/b/file1.txt
 !*/a/b/c/*
